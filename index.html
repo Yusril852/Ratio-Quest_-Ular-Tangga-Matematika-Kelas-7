@@ -31,8 +31,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
 const DATABASE_CONFIG = {
     GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwYK0LRAR3-yclcmcVsDd_QMccG3iA6mnA-jOwxocYGeSw-hlGFZAN-HrdIhu3AwYw5/exec"
 };
-const PIN='12344'; // ← ganti PIN guru di sini
-const K='rq_v1',END=56,TOP=['Rasio','Skala','Laju Satuan'];
+const PIN='54321'; // ← ganti PIN guru di sini
+const K='rq_v1',END=56,TOP=['Rasio','Skala','Laju Satuan'],QN=25,mk=()=>Object.fromEntries(TOP.map(t=>[t,[0,0]]));
 const LN=['Ratio Rookie','Number Explorer','Ratio Ranger','Scale Master','Rate Champion','Ratio Strategist','Math Master'];
 const L={4:14,9:23,19:30,25:38,32:47,40:51},S={17:6,27:12,36:20,44:28,50:33,54:41},T={};
 [7,22,35,48].forEach(i=>T[i]='bonus');[11,29,43,52].forEach(i=>T[i]='speed');[3,13,26,39,46].forEach(i=>T[i]='chal');[21,34,49,55].forEach(i=>T[i]='master');[8,16,31,45].forEach(i=>T[i]='lucky');
@@ -63,43 +63,43 @@ Skala:[
 /* ===== DATA ===== */
 let DB;try{DB=JSON.parse(localStorage.getItem(K))}catch(e){}
 DB=DB||{players:{},qh:[],cfg:{hint:1,timer:1,lb:1}};DB.cfg=DB.cfg||{hint:1,timer:1,lb:1};
+Object.values(DB.players).forEach(p=>p.m={...mk(),...p.m});
 const SEEN=new Set(DB.qh.map(x=>x.question));
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(DB))}catch(e){}};
 let P,G,view='login',Qs,busy=0,dq='',ds='score',dc='',sel=null;
 const persist=()=>{if(!P.demo){P.cur=G;DB.players[P.id]=P;save()}};
-const np=(id,name,cls,no)=>({id,name,cls,no,xp:0,best:0,last:0,n:0,ok:0,bad:0,m:{Rasio:[0,0],Skala:[0,0],'Laju Satuan':[0,0]},wl:[],time:0,b:[],spd:0,ms:0,games:[],cur:null});
+const np=(id,name,cls,no)=>({id,name,cls,no,xp:0,best:0,last:0,n:0,ok:0,bad:0,m:mk(),wl:[],time:0,b:[],spd:0,ms:0,games:[],cur:null});
 const lv=p=>Math.min(7,1+Math.floor(p.xp/300)),pc=m=>m[1]?Math.round(m[0]/m[1]*100):null,acc=p=>p.n?Math.round(p.ok/p.n*100):0;
 const bar=v=>`<div class="bar"><i style="width:${v||0}%"></i></div>`;
 const stat=p=>p.n<5?'⚪ Baru':acc(p)>=80?'🟢 Menguasai':acc(p)>=60?'🟡 Berkembang':'🔴 Perlu bimbingan';
 function beep(f,d){try{const a=window._ac=window._ac||new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
 /* ===== GENERATOR ===== */
-function topic(){const w=TOP.map(t=>{const m=P.m[t];return 1+(1-(m[1]?m[0]/m[1]:.5))*2});let r=Math.random()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){r-=w[i];if(r<=0)return TOP[i]}return TOP[2]}
+function topic(){const w=TOP.map(t=>{const m=P.m[t];return 1+(1-(m[1]?m[0]/m[1]:.5))*2});let r=Math.random()*w.reduce((x,y)=>x+y);for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return TOP[i]}return TOP[TOP.length-1]}
 function make(tp,diff){let q;for(let t=0;t<60;t++){const i=diff==4?3:rnd(Math.max(0,diff-2),Math.min(diff-1,3));q=GEN[tp][i]();if(!G.seen.includes(q.q)&&(t>40||!SEEN.has(q.q)))break}q.topic=tp;q.diff=diff;G.seen.push(q.q);SEEN.add(q.q);return q}
 /* ===== VIEWS ===== */
 function render(){$('#app').innerHTML={login,game,res,dash,prof}[view]()}
 function login(){return`<div class="card" style="text-align:center"><h1>🎲 RATIO QUEST</h1><div class="sub">Ular Tangga Matematika Kelas 7<br><i>Naik Tangga dengan Logika, Hindari Ular dengan Strategi!</i></div></div>
-<div class="card"><h2>Selamat datang di Ratio Quest!</h2><input id="nm" placeholder="Nama lengkap"><div class="row"><input id="kl" placeholder="Kelas (mis. 7F)"><input id="no" type="number" placeholder="No. absen"></div><div id="er" class="no"></div>
+<div class="card"><h2>Selamat datang di Ratio Quest!</h2><input id="nm" placeholder="Nama lengkap"><div class="row"><input id="no" type="number" min="1" placeholder="Nomor absen"><input id="kl" placeholder="Kelas (mis. 7F)"></div><div id="er" class="no"></div>
 <div class="row" style="margin-top:8px"><button class="btn" onclick="go()">▶ Mulai Main</button><button class="btn o" onclick="demo()">🎮 Demo Mode</button></div>
 <div class="row" style="margin-top:8px"><button class="btn o s" onclick="$('#pr').style.display='flex'">🔐 Masuk sebagai Guru</button></div>
 <div class="row" id="pr" style="display:none;margin-top:8px"><input id="pin" type="password" placeholder="PIN Guru"><button class="btn s" onclick="tch()">Masuk</button></div></div>`}
 function go(){const name=$('#nm').value.trim(),cls=$('#kl').value.trim().toUpperCase(),no=$('#no').value.trim();if(!name||!cls||!no){$('#er').textContent='Lengkapi nama, kelas, dan nomor absen.';return}
-const id=`${cls}-${no}-${name.toLowerCase().replace(/\W+/g,'')}`;P=DB.players[id]||np(id,name,cls,no);if(P.cur){G=P.cur}else ng();persist();view='game';render()}
+const id=`${cls}-${no}-${name.toLowerCase().replace(/\W+/g,'')}`;P=DB.players[id]||np(id,name,cls,no);P.m={...mk(),...P.m};if(P.cur&&P.cur.lim===QN){G=P.cur;G.tp={...mk(),...G.tp}}else ng();persist();view='game';render()}
 function demo(){P=np('demo','Demo','7X',0);P.demo=1;ng();view='game';render()}
-function ng(){G={sid:newSid(),steps:0,sn:0,ld:0,det:[],pos:1,score:0,xp:0,st:0,ms:0,n:0,ok:0,bad:0,diff:1,cc:0,cw:0,seen:[],t0:Date.now(),sp:0,tp:{Rasio:[0,0],Skala:[0,0],'Laju Satuan':[0,0]}}}
+function ng(){G={sid:newSid(),steps:0,sn:0,ld:0,det:[],pos:1,score:0,xp:0,st:0,ms:0,n:0,ok:0,bad:0,diff:1,cc:0,cw:0,seen:[],t0:Date.now(),sp:0,lim:QN,tp:mk()}}
 function tch(){if($('#pin').value===PIN){view='dash';render()}else $('#pin').style.borderColor='red'}
 function board(){let h='';for(let r=6;r>=0;r--){const row=[];for(let c=1;c<=8;c++)row.push(r*8+c);if(r%2)row.reverse();row.forEach(i=>{const t=type(i),ic={ladder:'🪜',snake:'🐍',bonus:'⭐',speed:'⚡',chal:'🧠',master:'👑',lucky:'🎲',normal:''}[t];h+=`<div class="cl ${t}"><b>${i}</b><span>${i==END?'🏁':ic+(L[i]?'→'+L[i]:S[i]?'→'+S[i]:'')}</span>${G.pos==i?'<em class="pw">🚀</em>':''}</div>`})}return h}
-function game(){const l=lv(P);return`<div class="card"><div class="row"><div><b>${esc(P.name)}</b> <span class="tag">${P.cls}</span><div class="sub">Lv ${l} — ${LN[l-1]}</div></div><div style="text-align:right">🏆 <b>${G.score}</b> poin · 🔥 ${G.st}<div class="sub">XP ${P.xp%300}/300 · Tingkat ${G.diff}/4</div></div></div>${bar(P.xp%300/3)}</div>
+function game(){const l=lv(P);return`<div class="card"><div class="row"><div><b>${esc(P.name)}</b> <span class="tag">${P.cls}</span><div class="sub">Lv ${l} — ${LN[l-1]}</div></div><div style="text-align:right">🏆 <b>${G.score}</b>/100 poin · Soal <b>${G.n}/${G.lim}</b> · 🔥 ${G.st}<div class="sub">XP ${P.xp%300}/300 · Tingkat ${G.diff}/4</div></div></div>${bar(P.xp%300/3)}</div>
 <div class="card"><div id="bd">${board()}</div></div>
-<div class="card row"><div id="dice">🎲 ?</div><button class="btn" onclick="roll()">🎲 ROLL DICE</button><button class="btn o" onclick="fin()">🏁 Selesai</button><button class="btn o" onclick="view='login';render()">Keluar</button></div>
+<div class="card row"><div id="dice">🎲 ?</div><button class="btn" onclick="roll()">🎲 ROLL DICE</button><button class="btn o" onclick="view='login';render()">Keluar</button></div>
 <div class="sub" style="text-align:center">🪜 tangga · 🐍 ular · ⭐ bonus · 🧠 challenge · ⚡ speed · 👑 master · 🎲 lucky</div>`}
 async function roll(){if(busy)return;busy=1;G.steps=(G.steps||0)+1;const dv=$('#dice');for(let i=0;i<8;i++){dv.textContent='🎲 '+rnd(1,6);await sl(70)}const d=rnd(1,6);dv.textContent='🎲 '+d;
-for(let i=0;i<d&&G.pos<END;i++){G.pos++;$('#bd').innerHTML=board();beep(300+G.pos*8,.05);await sl(220)}
-if(G.pos>=END){G.pos=END;busy=0;return fin()}
-const t=type(G.pos);if(t=='lucky'){const p=rnd(2,8)*10;G.score+=p;beep(700,.2);await info('🎲 Lucky Number!',`Kamu mendapat +${p} poin gratis!`)}
+let dir=1;for(let i=0;i<d;i++){if(G.pos>=END)dir=-1;G.pos+=dir;$('#bd').innerHTML=board();beep(300+G.pos*8,.05);await sl(220)}
+const t=type(G.pos);if(t=='lucky'){G.xp+=10;P.xp+=10;beep(700,.2);await info('🎲 Lucky Number!','Kamu mendapat +10 XP gratis! (skor tidak berubah)')}
 else{const ok=await ask(t);if(t=='ladder'&&ok){G.ld=(G.ld||0)+1;G.pos=L[G.pos];beep(900,.3);await info('🪜 AMAZING!','Strategi hebat! Kamu pantas naik!')}
 else if(t=='ladder')await info('🪜 Tangga','Belum naik kali ini. Coba lagi di lemparan berikutnya!');
 else if(t=='snake'){G.sn=(G.sn||0)+1;const f=S[G.pos];G.pos=ok?Math.ceil((G.pos+f)/2):f;await info('🐍 Ular!',ok?'Jawabanmu tepat — kamu hanya turun setengah jalan!':'Kamu turun ke kotak '+f+'. Semangat, kamu pasti bisa naik lagi!')}}
-busy=0;persist();render()}
+busy=0;persist();if(G.n>=G.lim)return fin();render()}
 function info(h,p){return new Promise(r=>{const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="md" style="text-align:center"><h2>${h}</h2><p>${p}</p><button class="btn">Lanjut</button></div>`;o.querySelector('button').onclick=()=>{o.remove();r()};document.body.appendChild(o)})}
 /* ===== SOAL ===== */
 function ask(kind){return new Promise(res=>{const df={master:4,chal:Math.max(3,G.diff),speed:Math.min(G.diff,2),snake:Math.max(1,G.diff-1)}[kind]||G.diff,q=make(topic(),df);
@@ -110,28 +110,28 @@ const o=document.createElement('div');o.className='ov';o.id='md';document.body.a
 const lab={normal:'Soal Biasa',chal:'🧠 Challenge',master:'👑 MASTER CHALLENGE',bonus:'⭐ Bonus',speed:'⚡ SPEED CHALLENGE',ladder:'🪜 Soal Tangga',snake:'🐍 Remedial Ular'}[kind];
 const body=ty=='tf'?`${q.q}<p><b>Pernyataan:</b> jawabannya adalah “${esc(claim)}”.</p>`:q.q;
 o.innerHTML=`<div class="md"><div class="row"><span class="tag">${lab}</span><span class="tag">${q.topic} · ${q.sub}</span><span id="tm" class="tag" style="flex:0"></span></div><h3 style="margin:10px 0">${body}</h3><div id="ch">${ty=='num'?'<input id="nv" inputmode="decimal" placeholder="Ketik jawaban angka"><button class="btn" onclick="ans($(\'#nv\').value)">Jawab</button>':opts.map((x,i)=>`<button class="op" data-i="${i}">${String.fromCharCode(65+i)}. ${esc(x)}</button>`).join('')}</div>
-<div id="hn" class="sub"></div>${DB.cfg.hint?'<button class="btn o s" id="hb" onclick="hint()">💡 Hint (-25)</button>':''}<div id="fb"></div></div>`;
+<div id="hn" class="sub"></div>${DB.cfg.hint?'<button class="btn o s" id="hb" onclick="hint()">💡 Hint</button>':''}<div id="fb"></div></div>`;
 o.querySelectorAll('.op').forEach(b=>b.onclick=()=>ans(opts[b.dataset.i]));
 if(kind=='speed'&&DB.cfg.timer){let s=20;const u=()=>$('#tm')&&($('#tm').textContent='⏱ '+s+'s');u();Qs.iv=setInterval(()=>{s--;u();if(s<=0)ans(null)},1000)}})}
-function hint(){const h=Qs.hints++;$('#hn').innerHTML+=`<p>💡 ${h?'Tulis informasi yang diketahui, lalu cari nilai 1 bagian / 1 satuan terlebih dahulu.':esc(Qs.q.h)}</p>`;if(h)$('#hb').remove();else $('#hb').textContent='💡 Hint 2 (-50)'}
+function hint(){const h=Qs.hints++;$('#hn').innerHTML+=`<p>💡 ${h?'Tulis informasi yang diketahui, lalu kerjakan langkah demi langkah.':esc(Qs.q.h)}</p>`;if(h)$('#hb').remove();else $('#hb').textContent='💡 Hint 2'}
 function ans(v){if(Qs.done)return;Qs.done=1;clearInterval(Qs.iv);const{q,ty,kind}=Qs;let ok=false;
-if(v!==null){if(ty=='num')ok=Math.abs(parseFloat(String(v).replace(',','.'))-q.n)<1e-6;else if(ty=='tf')ok=(v=='Benar')==(Qs.claim===q.a);else ok=v===q.a}
+if(v!==null){if(ty=='num')ok=Math.abs(parseFloat(String(v).replace(/−/g,'-').replace(',','.'))-q.n)<1e-6;else if(ty=='tf')ok=(v=='Benar')==(Qs.claim===q.a);else ok=v===q.a}
 const base={chal:150,master:250,snake:50}[kind]||100,sec=Math.round((Date.now()-Qs.t0)/1000);let pts=0,xp=0;
-G.n++;P.n++;(G.det=G.det||[]).push({no:G.n,topic:q.topic,sub:q.sub,diff:q.diff,kind,q:q.q+(ty=='tf'?' [Pernyataan: "'+Qs.claim+'"]':''),sa:v===null?'(waktu habis)':String(v),ca:ty=='tf'?(Qs.claim===q.a?'Benar':'Salah'):(ty=='num'?fmt(q.n):q.a),ok});const m=P.m[q.topic];m[1]++;G.tp[q.topic][1]++;P.time+=sec;
+G.n++;P.n++;(G.det=G.det||[]).push({no:G.n,topic:q.topic,sub:q.sub,diff:q.diff,kind,q:q.q+(ty=='tf'?' [Pernyataan: "'+Qs.claim+'"]':''),sa:v===null?'(waktu habis)':String(v),ca:ty=='tf'?(Qs.claim===q.a?'Benar':'Salah'):q.a,ok});const m=P.m[q.topic];m[1]++;G.tp[q.topic][1]++;P.time+=sec;
 if(ok){G.ok++;P.ok++;m[0]++;G.tp[q.topic][0]++;G.st++;G.cc++;G.cw=0;G.ms=Math.max(G.ms,G.st);P.ms=Math.max(P.ms,G.st);
-const mult=G.st>=5?3:G.st>=3?2:1;pts=Math.max(0,base*mult-[0,25,75][Math.min(Qs.hints,2)])+(kind=='bonus'?50:0);xp=kind=='master'?50:kind=='chal'?35:Qs.hints?20:25;
+pts=4;xp=kind=='master'?50:kind=='chal'?35:Qs.hints?20:25;
 if(kind=='speed')P.spd++;if(G.cc>=3){G.diff=Math.min(4,G.diff+1);G.cc=0}beep(800,.15)}
 else{G.bad++;P.bad++;G.st=0;G.cc=0;G.cw++;if(G.cw>=2){G.diff=Math.max(1,G.diff-1);G.cw=0}P.wl.unshift({q:q.q,a:q.a,topic:q.topic,sub:q.sub,diff:q.diff,kind,ts:Date.now(),sec});P.wl=P.wl.slice(0,60);beep(220,.25)}
 G.score+=pts;G.xp+=xp;P.xp+=xp;
 if(!P.demo)DB.qh.push({questionID:'Q'+Date.now()+rnd(10,99),playerID:P.id,topic:q.topic,difficulty:q.diff,question:q.q,answer:q.a,timestamp:Date.now(),status:ok?'benar':'salah'});
 persist();
-const bonus=ok&&G.st==3?' 🔥 COMBO x2!':ok&&G.st==5?' 🔥 COMBO x3!':ok&&G.st==10?' 🔥 PERFECT STREAK!':'';
-$('#fb').innerHTML=`<hr><h3 class="${ok?'ok':'no'}">${ok?'🎉 BENAR! Hebat! Strategimu tepat.':v===null?'⏰ Waktu habis, tidak apa-apa!':'Belum tepat, tetapi tidak apa-apa!'}${bonus}</h3>${ok?`<p>+${xp} XP · +${pts} POIN</p>`:`<p>Jawaban benar: <b>${esc(ty=='num'?fmt(q.n):q.a)}</b></p>`}<p class="sub">📘 ${esc(q.e)}</p><button class="btn" id="nx">Lanjut</button>`;
+const bonus=ok&&G.st==3?' 🔥 3 benar beruntun!':ok&&G.st==5?' 🔥 5 benar beruntun!':ok&&G.st==10?' 🔥 PERFECT STREAK!':'';
+$('#fb').innerHTML=`<hr><h3 class="${ok?'ok':'no'}">${ok?'🎉 BENAR! Hebat! Strategimu tepat.':v===null?'⏰ Waktu habis, tidak apa-apa!':'Belum tepat, tetapi tidak apa-apa!'}${bonus}</h3>${ok?`<p>+${xp} XP · +${pts} POIN</p>`:`<p>Jawaban benar: <b>${esc(q.a)}</b></p>`}<p class="sub">📘 ${esc(q.e)}</p><button class="btn" id="nx">Lanjut</button>`;
 document.querySelectorAll('.op,#hb').forEach(b=>b.disabled=true);$('#nx').onclick=()=>{$('#md').remove();Qs.res(ok)}}
 /* ===== SELESAI ===== */
 function fin(){if(busy)return;const r=TOP.map(t=>[t,pc(G.tp[t])]).filter(x=>x[1]!==null).sort((a,b)=>b[1]-a[1]);G.res={best:r[0]?r[0][0]:'-',weak:r.length?r[r.length-1][0]:'-',acc:G.n?Math.round(G.ok/G.n*100):0};
 if(!P.demo){P.games.unshift({ts:Date.now(),score:G.score,n:G.n,ok:G.ok,acc:G.res.acc,sec:Math.round((Date.now()-G.t0)/1000)});P.last=G.score;P.best=Math.max(P.best,G.score);
-const add=k=>{if(!P.b.includes(k))P.b.push(k)};add('First Step');if(pc(P.m.Rasio)>=90&&P.m.Rasio[1]>=5)add('Ratio Master');if(P.m.Skala[1]>=10)add('Scale Explorer');if(P.spd>=5)add('Speed Demon');if(P.ms>=10)add('Perfect Streak');if(G.bad>=5)add('Never Give Up');P.cur=null;DB.players[P.id]=P;save()}
+const add=k=>{if(!P.b.includes(k))P.b.push(k)};add('First Step');if(pc(P.m.Rasio)>=90&&P.m.Rasio[1]>=5)add('Ratio Master');if(P.m.Skala[1]>=10)add('Scale Explorer');if(G.ok>=23)add('Math Hero');if(P.spd>=5)add('Speed Demon');if(P.ms>=10)add('Perfect Streak');if(G.bad>=5)add('Never Give Up');P.cur=null;DB.players[P.id]=P;save()}
 view='res';render();sendResult()}
 function res(){const r=G.res,l=lv(P),top=Object.values(DB.players).sort((a,b)=>b.best-a.best).slice(0,5);
 return`<div class="card" style="text-align:center"><h1>🏆 QUEST COMPLETE!</h1><h2>${esc(P.name)}</h2><p>Score <b>${G.score}</b> · XP ${G.xp} · Accuracy ${r.acc}%<br>Soal ${G.n} · Benar ${G.ok} · Salah ${G.bad}</p><p>Topik terbaik: <b>${r.best}</b> ⭐ · Perlu latihan: <b>${r.weak}</b></p><p>Level: <b>${LN[l-1]}</b></p>
@@ -142,13 +142,13 @@ ${DB.cfg.lb&&!P.demo?`<h3>🏆 Class Leaderboard</h3>${top.map((p,i)=>`<div>${['
 const REC={Rasio:'konsep rasio: menyederhanakan dan mencari nilai bagian',Skala:'hubungan jarak pada peta dan jarak sebenarnya serta konversi satuan',['Laju Satuan']:'harga/jarak per satuan dan membandingkan dua laju'};
 const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()};
 const expJ=()=>dl('ratioquest-data.json',JSON.stringify(DB),'application/json');
-function expC(){const h='Nama,Kelas,Absen,Game,Skor tertinggi,Skor terakhir,Soal,Benar,Salah,Akurasi,Rasio,Skala,Laju,Level,Menit\n';dl('ratioquest.csv',h+Object.values(DB.players).map(p=>[`"${p.name}"`,p.cls,p.no,p.games.length,p.best,p.last,p.n,p.ok,p.bad,acc(p),pc(p.m.Rasio),pc(p.m.Skala),pc(p.m['Laju Satuan']),LN[lv(p)-1],Math.round(p.time/60)].join(',')).join('\n'),'text/csv')}
+function expC(){const h='Nama,Kelas,Absen,Game,Skor tertinggi,Skor terakhir,Soal,Benar,Salah,Akurasi,'+TOP.join(',')+',Level,Menit\n';dl('ratioquest.csv',h+Object.values(DB.players).map(p=>[`"${p.name}"`,p.cls,p.no,p.games.length,p.best,p.last,p.n,p.ok,p.bad,acc(p),...TOP.map(t=>pc(p.m[t])),LN[lv(p)-1],Math.round(p.time/60)].join(',')).join('\n'),'text/csv')}
 function imp(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);Object.assign(DB.players,d.players||{});DB.qh=DB.qh.concat(d.qh||[]);d.qh&&d.qh.forEach(x=>SEEN.add(x.question));save();render()}catch(e){alert('File tidak valid')}};r.readAsText(f)}
 let rc=0;function rst(){if(!rc){rc=1;$('#rb').textContent='Klik lagi untuk HAPUS semua data';return}DB.players={};DB.qh=[];SEEN.clear();save();rc=0;render()}
 function cfg(k,v){DB.cfg[k]=v?1:0;save()}
 function rows(){let ps=Object.values(DB.players).filter(p=>(p.name+p.cls).toLowerCase().includes(dq.toLowerCase())&&(!dc||p.cls==dc));
 const f={score:(a,b)=>b.best-a.best,acc:(a,b)=>acc(b)-acc(a),low:(a,b)=>acc(a)-acc(b),n:(a,b)=>b.n-a.n,time:(a,b)=>b.time-a.time}[ds];ps.sort(f);
-return ps.map(p=>`<tr class="c" onclick="sel='${p.id}';view='prof';render()"><td>${esc(p.name)}</td><td>${p.cls}</td><td>${p.best}</td><td>${acc(p)}%</td><td>${pc(p.m.Rasio)??'-'}</td><td>${pc(p.m.Skala)??'-'}</td><td>${pc(p.m['Laju Satuan'])??'-'}</td><td>${lv(p)}</td><td>${stat(p)}</td></tr>`).join('')||'<tr><td colspan=9>Belum ada data siswa.</td></tr>'}
+return ps.map(p=>`<tr class="c" onclick="sel='${p.id}';view='prof';render()"><td>${esc(p.name)}</td><td>${p.cls}</td><td>${p.best}</td><td>${acc(p)}%</td>${TOP.map(t=>`<td>${pc(p.m[t])??'-'}</td>`).join('')}<td>${lv(p)}</td><td>${stat(p)}</td></tr>`).join('')||'<tr><td colspan=10>Belum ada data siswa.</td></tr>'}
 function dash(){const ps=Object.values(DB.players),cl=[...new Set(ps.map(p=>p.cls))],top=[...ps].sort((a,b)=>b.best-a.best).slice(0,3);
 const avg=t=>{const a=ps.filter(p=>p.m[t][1]);return a.length?Math.round(a.reduce((s,p)=>s+pc(p.m[t]),0)/a.length):0};
 const rem=[];ps.forEach(p=>TOP.forEach(t=>{const v=pc(p.m[t]);if(p.m[t][1]>=3&&v<60)rem.push([p.name,t,v])}));rem.sort((a,b)=>a[2]-b[2]);
@@ -159,7 +159,7 @@ return`<div class="card"><div class="row"><h2>🔐 MASTER DASHBOARD</h2><button 
 <div class="card"><h3>📊 Statistik Kelas</h3>${TOP.map(t=>`<div>${t} <b>${avg(t)}%</b>${bar(avg(t))}</div>`).join('')}</div></div>
 <div class="card"><h3>🔴 SIAPA YANG MEMBUTUHKAN REMEDIAL?</h3>${rem.slice(0,10).map(r=>`<div>• <b>${esc(r[0])}</b> — ${r[1]} ${r[2]}%<div class="sub">Perlu penguatan ${REC[r[1]]}.</div></div>`).join('')||'<span class="sub">Belum ada siswa di bawah 60%.</span>'}</div>
 <div class="card"><div class="row"><input placeholder="🔍 Cari siswa" value="${esc(dq)}" oninput="dq=this.value;$('#tb').innerHTML=rows()"><select onchange="dc=this.value;$('#tb').innerHTML=rows()"><option value="">Semua kelas</option>${cl.map(c=>`<option ${c==dc?'selected':''}>${c}</option>`).join('')}</select><select onchange="ds=this.value;$('#tb').innerHTML=rows()"><option value="score">Skor tertinggi</option><option value="acc">Akurasi tertinggi</option><option value="low">Progres terendah</option><option value="n">Soal terbanyak</option><option value="time">Waktu bermain</option></select></div>
-<div class="sc"><table><tr><th>Nama</th><th>Kelas</th><th>Skor</th><th>Akurasi</th><th>Rasio</th><th>Skala</th><th>Laju</th><th>Lv</th><th>Status</th></tr><tbody id="tb">${rows()}</tbody></table></div></div>`}
+<div class="sc"><table><tr><th>Nama</th><th>Kelas</th><th>Skor</th><th>Akurasi</th>${TOP.map(t=>`<th>${t}</th>`).join('')}<th>Lv</th><th>Status</th></tr><tbody id="tb">${rows()}</tbody></table></div></div>`}
 function prof(){const p=DB.players[sel],l=lv(p);return`<div class="card"><button class="btn o s" onclick="view='dash';render()">← Kembali</button><h2>PLAYER PROFILE</h2><p><b>${esc(p.name)}</b> · Kelas ${p.cls} · No. ${p.no} ${stat(p)}</p>
 <p>LEVEL ${l} — ${LN[l-1]}<br>XP ${p.xp%300} / 300 ${bar(p.xp%300/3)}</p><p>Accuracy ${acc(p)}% · Soal ${p.n} · Benar ${p.ok} · Salah ${p.bad} · Game ${p.games.length} · Waktu ${Math.round(p.time/60)} menit</p>
 <h3>MASTERY</h3>${TOP.map(t=>`<div>${t} ${pc(p.m[t])??'-'}%${bar(pc(p.m[t]))}</div>`).join('')}${p.b.length?`<p>🏅 ${p.b.join(' · ')}</p>`:''}
@@ -172,14 +172,14 @@ const getPend=()=>{try{return JSON.parse(localStorage.getItem(PK))||{}}catch(e){
 const setPend=o=>{try{localStorage.setItem(PK,JSON.stringify(o))}catch(e){}};
 const dbOn=()=>DATABASE_CONFIG.GOOGLE_SCRIPT_URL&&!/TEMPEL/.test(DATABASE_CONFIG.GOOGLE_SCRIPT_URL);
 function buildPayload(){G.sid=G.sid||newSid();const s=Math.round((Date.now()-G.t0)/1000),mm=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-return{session_id:G.sid,nama:P.name,kelas:P.cls,nomor_absen:P.no,skor:G.score,jumlah_soal:G.n,benar:G.ok,salah:G.bad,persentase:G.n?Math.round(G.ok/G.n*100):0,durasi:mm,materi:TOP.filter(t=>G.tp[t][1]).join(', ')||'-',langkah:G.steps||0,posisi_akhir:G.pos,jumlah_ular:G.sn||0,jumlah_tangga:G.ld||0,xp:G.xp,level:LN[lv(P)-1],streak_terbaik:G.ms,
+return{session_id:G.sid,nama:P.name,kelas:P.cls,nomor_absen:P.no,absen:P.no,skor:G.score,jumlah_soal:G.n,benar:G.ok,salah:G.bad,persentase:G.n?Math.round(G.ok/G.n*100):0,durasi:mm,materi:TOP.filter(t=>G.tp[t][1]).join(', ')||'-',langkah:G.steps||0,posisi_akhir:G.pos,jumlah_ular:G.sn||0,jumlah_tangga:G.ld||0,xp:G.xp,level:LN[lv(P)-1],streak_terbaik:G.ms,
 jawaban:(G.det||[]).map(d=>({nomor_soal:d.no,materi:d.topic,submateri:d.sub,tingkat:d.diff,jenis_kotak:d.kind,soal:d.q,jawaban_siswa:d.sa,jawaban_benar:d.ca,hasil:d.ok?'Benar':'Salah'}))}}
-async function postDB(p){const r=await fetch(DATABASE_CONFIG.GOOGLE_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const j=await r.json();if(!j.success)throw new Error(j.message);return j}
+async function postDB(p){const r=await fetch(DATABASE_CONFIG.GOOGLE_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});if(!r.ok)throw new Error('HTTP '+r.status)}
 function stMsg(h,retry){const e=$('#dbst');if(e)e.innerHTML=h+(retry?'<br><button class="btn s" style="margin-top:6px" onclick="resend()">KIRIM ULANG HASIL</button>':'')}
 async function sendResult(){if(P.demo)return stMsg('🎮 Mode demo: hasil tidak dikirim.');const p=buildPayload(),pe=getPend();pe[p.session_id]=p;setPend(pe);await trySend(p.session_id)}
 async function trySend(id){const p=getPend()[id];if(!p)return;stMsg('📡 Mengirim hasil permainan...');
 if(!dbOn())return stMsg('⚠️ Hasil belum berhasil dikirim (URL database belum diisi). Hasil tersimpan sementara di perangkat ini.',1);
-try{await postDB(p);const q=getPend();delete q[id];setPend(q);stMsg('✅ Hasil permainan berhasil tersimpan.')}catch(e){stMsg('⚠️ Hasil belum berhasil dikirim. Jangan tutup halaman, silakan coba lagi.',1)}}
+try{await postDB(p);const q=getPend();delete q[id];setPend(q);stMsg('✅ Nilai berhasil dikirim dan disimpan!')}catch(e){stMsg('⚠️ Gagal mengirim nilai, periksa koneksi internet.',1)}}
 function resend(){Object.keys(getPend()).reduce((pr,id)=>pr.then(()=>trySend(id)),Promise.resolve())}
 window.addEventListener('online',()=>{if(dbOn())resend()});
 if(dbOn())setTimeout(resend,1500);
