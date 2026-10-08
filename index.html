@@ -12,11 +12,11 @@ h1,h2,h3{margin:.2em 0}.sub{color:var(--m)}
 input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b);background:var(--bg);color:var(--t);font-size:15px;margin:4px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
 .bar{height:10px;background:var(--b);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#6c4cf5,#22c55e)}
-#bd{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
-.cl{position:relative;aspect-ratio:1;border-radius:8px;background:var(--c);border:1px solid var(--b);font-size:11px;padding:2px;overflow:hidden;display:flex;flex-direction:column}
-.cl b{font-size:10px;color:var(--m)}.cl span{font-size:13px;text-align:center}
+#bd{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.cl{position:relative;aspect-ratio:1;border-radius:6px;background:var(--c);border:1px solid var(--b);font-size:9px;padding:1px;overflow:hidden;display:flex;flex-direction:column}
+.cl b{font-size:8px;color:var(--m)}.cl span{font-size:10px;text-align:center}
 .ladder{background:rgba(34,197,94,.25)}.snake{background:rgba(225,29,72,.22)}.bonus{background:rgba(245,158,11,.28)}.speed{background:rgba(249,115,22,.28)}.chal{background:rgba(59,130,246,.25)}.master{background:rgba(147,51,234,.3)}.lucky{background:rgba(236,72,153,.25)}
-.pw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-style:normal;animation:bo .6s infinite alternate}
+.pw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-style:normal;animation:bo .6s infinite alternate}
 @keyframes bo{to{transform:translateY(-4px) scale(1.1)}}
 #dice{font-size:22px;font-weight:700}
 .ov{position:fixed;inset:0;background:rgba(10,8,30,.6);display:flex;align-items:center;justify-content:center;padding:12px;z-index:9}
@@ -29,37 +29,69 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;borde
 <script>
 /* ===== KONFIGURASI DATABASE (ganti URL setelah deploy Apps Script) ===== */
 const DATABASE_CONFIG = {
-    GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzncEK1zi8NFqz4O1nh6wqG7F3DC0rZpAdmsAlpCBju03tt2FuJgZ50wuBohlf8-kTr/exec"
+    GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwYK0LRAR3-yclcmcVsDd_QMccG3iA6mnA-jOwxocYGeSw-hlGFZAN-HrdIhu3AwYw5/exec"
 };
 const PIN='54321'; // ← ganti PIN guru di sini
-const K='rq_v1',END=56,TOP=['Rasio','Skala','Laju Satuan'],QN=25,mk=()=>Object.fromEntries(TOP.map(t=>[t,[0,0]]));
+const K='rq_v1',END=100,TOP=['Rasio','Himpunan'],QN=50,mk=()=>Object.fromEntries(TOP.map(t=>[t,[0,0]]));
 const LN=['Ratio Rookie','Number Explorer','Ratio Ranger','Scale Master','Rate Champion','Ratio Strategist','Math Master'];
-const L={4:14,9:23,19:30,25:38,32:47,40:51},S={17:6,27:12,36:20,44:28,50:33,54:41},T={};
-[7,22,35,48].forEach(i=>T[i]='bonus');[11,29,43,52].forEach(i=>T[i]='speed');[3,13,26,39,46].forEach(i=>T[i]='chal');[21,34,49,55].forEach(i=>T[i]='master');[8,16,31,45].forEach(i=>T[i]='lucky');
+const L={4:25,9:31,20:41,28:55,51:72,63:84,71:91},S={17:7,34:14,47:27,59:38,65:45,88:67,95:75},T={};
+[6,15,23,36,44,53,69,77,86,93].forEach(i=>T[i]='bonus');[8,19,30,39,49,57,66,79,89,97].forEach(i=>T[i]='speed');[3,12,22,33,43,52,61,73,82,92].forEach(i=>T[i]='chal');[11,26,37,46,58,68,76,85,96,98].forEach(i=>T[i]='master');
 const type=i=>L[i]?'ladder':S[i]?'snake':T[i]||'normal';
 const $=s=>document.querySelector(s),rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,pick=a=>a[rnd(0,a.length-1)],sh=a=>a.map(x=>[Math.random(),x]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]),sl=ms=>new Promise(r=>setTimeout(r,ms));
 const fmt=n=>(+(+n).toFixed(2)).toLocaleString('id-ID'),gcd=(a,b)=>b?gcd(b,a%b):a,esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function nd(a){const s=Math.max(1,Math.round(a*.15));return sh([...new Set([a+s,a-s,a*2,a+2*s,Math.round(a/2),a+1,a-1].filter(x=>x>0&&Math.abs(x-a)>1e-9).map(fmt))]).filter(x=>x!==fmt(a)).slice(0,3)}
-/* ===== BANK SOAL DINAMIS ===== */
-const RP=[['apel','jeruk'],['buku Ani','buku Budi'],['kelereng Dika','kelereng Rani'],['siswa laki-laki','siswa perempuan'],['bakso','mi ayam'],['pensil','pulpen'],['kelapa','pisang'],['cat merah','cat putih']];
+/* ===== BANK SOAL DINAMIS: konteks budaya & kearifan lokal Jawa Tengah ===== */
 const cop=()=>{let p,q;do{p=rnd(1,9);q=rnd(1,9)}while(gcd(p,q)>1||p==q);return[p,q]};
-const NS=[100000,200000,250000,500000],PL=[['Semarang','Kendal'],['rumah Dina','sekolah'],['Kota A','Kota B'],['Pasar','Stasiun'],['Desa Sukamaju','Kecamatan']],LI=['pensil','buku tulis','permen','botol air','roti'];
-const GEN={
-Rasio:[
-()=>{const[p,q]=cop(),g=rnd(2,7),[x,y]=pick(RP),a=`${p} : ${q}`;return{sub:'Menyederhanakan Rasio',q:rnd(0,1)?`Sederhanakan rasio ${p*g} : ${q*g}.`:`Di sebuah wadah ada ${p*g} ${x} dan ${q*g} ${y}. Rasio ${x} terhadap ${y} paling sederhana adalah ...`,a,d:[`${q} : ${p}`,`${p*g} : ${q}`,`${p} : ${q+1}`],h:'Bagi kedua bilangan dengan FPB-nya.',e:`Bagi keduanya dengan ${g}, hasilnya ${a}.`}},
-()=>{const[p,q]=cop(),k=rnd(2,9),[x,y]=pick(RP),f=rnd(0,1),g=f?q*k:p*k,an=f?p*k:q*k;return{sub:'Nilai yang belum diketahui',n:an,q:`Perbandingan banyak ${x} dan ${y} adalah ${p} : ${q}. Jika banyak ${f?y:x} ada ${g}, berapa banyak ${f?x:y}?`,a:fmt(an),d:nd(an),h:`Cari dulu nilai 1 bagian: ${g} ÷ ${f?q:p}.`,e:`1 bagian = ${k}. Jawaban = ${f?p:q} × ${k} = ${an}.`}},
-()=>{const[p,q]=cop(),k=rnd(2,8),[x,y]=pick(RP),Tt=(p+q)*k,f=rnd(0,1),an=(f?q:p)*k;return{sub:'Bagian terhadap keseluruhan',n:an,q:`${x} dan ${y} berbanding ${p} : ${q}. Jumlah keduanya ${Tt}. Berapa banyak ${f?y:x}?`,a:fmt(an),d:nd(an),h:`Jumlah bagian = ${p} + ${q}. Bagi total dengan jumlah bagian.`,e:`1 bagian = ${Tt} ÷ ${p+q} = ${k}. Jawaban = ${f?q:p} × ${k} = ${an}.`}},
-()=>{let[p,q]=cop();if(p>q)[p,q]=[q,p];const k=rnd(2,9),[x,y]=pick(RP),d=(q-p)*k,an=(p+q)*k;return{sub:'HOTS: selisih dan total',n:an,q:`Perbandingan ${x} dan ${y} adalah ${p} : ${q}. Selisih keduanya ${d}. Berapa jumlah ${x} dan ${y} seluruhnya?`,a:fmt(an),d:nd(an),h:`Selisih = ${q-p} bagian. Cari nilai 1 bagian lebih dulu.`,e:`1 bagian = ${d} ÷ ${q-p} = ${k}. Total = ${p+q} × ${k} = ${an}.`}}],
-Skala:[
-()=>{const N=pick(NS),c=rnd(2,9),km=c*N/1e5,[A,B]=pick(PL);return{sub:'Jarak sebenarnya',n:km,q:`Pada peta berskala 1 : ${fmt(N)}, jarak ${A}–${B} adalah ${c} cm. Jarak sebenarnya (km) adalah ...`,a:fmt(km),d:nd(km),h:`1 cm di peta mewakili ${fmt(N)} cm sebenarnya. Ingat 1 km = 100.000 cm.`,e:`${c} × ${fmt(N)} = ${fmt(c*N)} cm = ${fmt(km)} km.`}},
-()=>{const N=pick(NS),c=rnd(2,12),km=c*N/1e5,[A,B]=pick(PL);return{sub:'Jarak pada peta',n:c,q:`Jarak sebenarnya ${A} ke ${B} adalah ${fmt(km)} km. Pada peta berskala 1 : ${fmt(N)}, jaraknya (cm) adalah ...`,a:fmt(c),d:nd(c),h:'Ubah km ke cm lebih dulu, lalu bagi dengan penyebut skala.',e:`${fmt(km)} km = ${fmt(km*1e5)} cm. ${fmt(km*1e5)} ÷ ${fmt(N)} = ${c} cm.`}},
-()=>{const N=pick(NS),c=rnd(2,8),km=c*N/1e5,[A,B]=pick(PL),a=`1 : ${fmt(N)}`;return{sub:'Menentukan skala',q:`Jarak ${A}–${B} pada peta ${c} cm, sedangkan jarak sebenarnya ${fmt(km)} km. Skala peta tersebut adalah ...`,a,d:[`1 : ${fmt(N*10)}`,`1 : ${fmt(N/10)}`,`1 : ${fmt(N*2)}`],h:'Skala = jarak peta : jarak sebenarnya, dengan satuan yang sama (cm).',e:`${fmt(km)} km = ${fmt(km*1e5)} cm. ${c} : ${fmt(km*1e5)} = ${a}.`}},
-()=>{let N,c,km,v,t2,k=0;do{N=pick(NS);c=rnd(2,12);km=c*N/1e5;v=pick([20,30,40,50,60]);t2=km*2/v;k++}while((Math.abs(t2-Math.round(t2))>1e-9||t2/2>5)&&k<500);const mn=Math.round(t2*30),[A,B]=pick(PL);return{sub:'HOTS: skala dan kecepatan',n:mn,q:`Jarak ${A}–${B} pada peta ${c} cm (skala 1 : ${fmt(N)}). Budi naik motor dengan kecepatan ${v} km/jam. Berapa menit waktu tempuhnya?`,a:fmt(mn),d:nd(mn),h:'Cari jarak sebenarnya (km) dulu, lalu waktu = jarak ÷ kecepatan.',e:`Jarak = ${fmt(km)} km. Waktu = ${fmt(km)} ÷ ${v} = ${fmt(km/v)} jam = ${fmt(mn)} menit.`}}],
-'Laju Satuan':[
-()=>{const u=rnd(1,10)*500,n=rnd(2,12),x=pick(LI);return{sub:'Harga per satuan',n:u,q:`Ibu membeli ${n} ${x} seharga Rp${fmt(u*n)}. Harga satu ${x} (dalam rupiah) adalah ...`,a:fmt(u),d:nd(u),h:'Harga per satuan = total harga ÷ banyak barang.',e:`${fmt(u*n)} ÷ ${n} = ${fmt(u)}.`}},
-()=>{const t=rnd(2,6),v=rnd(4,14)*5;return rnd(0,1)?{sub:'Jarak per waktu',n:v,q:`Mobil menempuh ${v*t} km dalam ${t} jam. Kecepatannya (km/jam) adalah ...`,a:fmt(v),d:nd(v),h:'Kecepatan = jarak ÷ waktu.',e:`${v*t} ÷ ${t} = ${v} km/jam.`}:{sub:'Jarak per waktu',n:v*t,q:`Sepeda motor melaju ${v} km/jam selama ${t} jam. Jarak yang ditempuh (km) adalah ...`,a:fmt(v*t),d:nd(v*t),h:'Jarak = kecepatan × waktu.',e:`${v} × ${t} = ${v*t} km.`}},
-()=>{const u1=rnd(5,15)*100,n1=rnd(2,6);let n2=rnd(2,6),u2=u1+pick([-200,-100,100,200]);if(n2==n1)n2++;const A=n1*u1,B=n2*u2,an=u1<u2?'Paket A lebih murah':'Paket B lebih murah',x=pick(LI);return{sub:'Membandingkan dua laju',q:`Paket A: ${n1} ${x} seharga Rp${fmt(A)}. Paket B: ${n2} ${x} seharga Rp${fmt(B)}. Mana yang lebih murah per ${x}?`,a:an,d:['Paket A lebih murah'==an?'Paket B lebih murah':'Paket A lebih murah','Harganya sama saja','Tidak bisa dibandingkan'],h:'Bandingkan harga per satuan, bukan harga totalnya.',e:`A: ${fmt(u1)} per ${x}; B: ${fmt(u2)} per ${x}. ${an}.`}},
-()=>{if(rnd(0,1)){const r=rnd(4,20),t=rnd(2,6),m=rnd(8,30);return{sub:'HOTS: debit',n:m,q:`Keran mengalirkan ${r*t} liter dalam ${t} menit. Berapa menit untuk mengisi bak berisi ${r*m} liter?`,a:fmt(m),d:nd(m),h:'Cari debit (liter per menit) lebih dulu.',e:`Debit = ${r} L/menit. ${r*m} ÷ ${r} = ${m} menit.`}}const u=rnd(1,6)*500,m=pick([3,5,7,9,15]);return{sub:'HOTS: konversi satuan',n:m*u,q:`Satu lusin pensil harganya Rp${fmt(12*u)}. Berapa rupiah harga ${m} pensil?`,a:fmt(m*u),d:nd(m*u),h:'1 lusin = 12 buah. Cari harga 1 pensil.',e:`Harga 1 pensil = ${fmt(12*u)} ÷ 12 = ${fmt(u)}. ${m} pensil = ${fmt(m*u)}.`}}]};
+const d3=(a,c)=>[...new Set(c.filter(x=>x!==a))].slice(0,3),ndc=a=>d3(fmt(a),sh([a+1,a+2,a+3,a-1,a-2,a+4,a*2].filter(x=>x>=0).map(fmt)));
+const FD=[['tepung ketan','gula merah','ons','jenang Kudus'],['tempe','tepung bumbu','ons','mendoan Banyumas'],['beras','santan','gelas','nasi liwet Solo'],['kelapa parut','tepung ketan','ons','wingko babat'],['daging ayam','tauge','ons','lumpia Semarang'],['singkong','gula pasir','ons','getuk goreng']];
+const EK=[['putra','putri','Pramuka'],['siswa kelas 7','siswa kelas 8','PMR'],['pemain putra','pemain putri','tim voli sekolah'],['anggota baru','anggota lama','Paskibra']];
+const PL=[['Semarang','Ungaran'],['Magelang','Borobudur'],['Solo','Sragen'],['Kudus','Jepara'],['Purwokerto','Baturraden'],['Pekalongan','Batang']],NS=[100000,200000,250000,500000];
+const LI=[['tahu gimbal','porsi'],['bakso','porsi'],['es teh','gelas'],['lumpia','buah'],['jenang','bungkus']],NM=['Bu Wati','Pak Joko','Bu Rini','Pak Slamet','Mbak Ayu','Mas Dimas'];
+const lvg=a=>()=>pick(a)();
+const R0=[
+()=>{const[p,q]=cop(),g=rnd(2,6),[x,y,u,ds]=pick(FD),a=`${p} : ${q}`;return{sub:'Menyederhanakan rasio',q:`${pick(NM)} membuat ${ds} dengan ${p*g} ${u} ${x} dan ${q*g} ${u} ${y}. Rasio ${x} terhadap ${y} paling sederhana adalah ...`,a,d:[`${q} : ${p}`,`${p*g} : ${q}`,`${p} : ${q+1}`],h:'Bagi kedua bilangan dengan FPB-nya.',e:`Bagi keduanya dengan ${g}: ${p*g} : ${q*g} = ${a}.`}},
+()=>{const[p,q]=cop(),g=rnd(2,6),[x,y,k]=pick(EK),a=`${p} : ${q}`;return{sub:'Menyederhanakan rasio',q:`Ekstrakurikuler ${k} di sebuah SMP memiliki ${p*g} ${x} dan ${q*g} ${y}. Rasio ${x} terhadap ${y} paling sederhana adalah ...`,a,d:[`${q} : ${p}`,`${p*g} : ${q}`,`${p} : ${q+1}`],h:'Bagi kedua bilangan dengan FPB-nya.',e:`Bagi keduanya dengan ${g}: ${p*g} : ${q*g} = ${a}.`}},
+()=>{const N=pick(NS),c=rnd(2,9),km=c*N/1e5,[A,B]=pick(PL);return{sub:'Skala: jarak sebenarnya',n:km,q:`Pada peta Jawa Tengah berskala 1 : ${fmt(N)}, jarak ${A}–${B} adalah ${c} cm. Jarak sebenarnya (km) adalah ...`,a:fmt(km),d:nd(km),h:`1 cm di peta mewakili ${fmt(N)} cm sebenarnya. Ingat 1 km = 100.000 cm.`,e:`${c} × ${fmt(N)} = ${fmt(c*N)} cm = ${fmt(km)} km.`}},
+()=>{const u=rnd(1,10)*500,n=rnd(2,12),[x,s]=pick(LI);return{sub:'Laju: harga per satuan',n:u,q:`${pick(NM)} membeli ${n} ${s} ${x} seharga Rp${fmt(u*n)}. Harga satu ${s} ${x} (rupiah) adalah ...`,a:fmt(u),d:nd(u),h:'Harga per satuan = total harga ÷ banyak barang.',e:`${fmt(u*n)} ÷ ${n} = ${fmt(u)}.`}}];
+const R1=[
+()=>{const[p,q]=cop(),k=rnd(2,9),[x,y,u,ds]=pick(FD),f=rnd(0,1),g=f?q*k:p*k,an=f?p*k:q*k;return{sub:'Rasio: nilai yang belum diketahui',n:an,q:`Resep ${ds} memakai ${x} dan ${y} dengan perbandingan ${p} : ${q}. Jika ${f?y:x} yang dipakai ${g} ${u}, banyak ${f?x:y} (${u}) adalah ...`,a:fmt(an),d:nd(an),h:`Cari dulu nilai 1 bagian: ${g} ÷ ${f?q:p}.`,e:`1 bagian = ${k}. Jawaban = ${f?p:q} × ${k} = ${an}.`}},
+()=>{const[p,q]=cop(),k=rnd(2,9),[x,y,m]=pick(EK),f=rnd(0,1),g=f?q*k:p*k,an=f?p*k:q*k;return{sub:'Rasio: nilai yang belum diketahui',n:an,q:`Perbandingan ${x} dan ${y} dalam ekstrakurikuler ${m} adalah ${p} : ${q}. Jika banyak ${f?y:x} ada ${g} orang, banyak ${f?x:y} adalah ...`,a:fmt(an),d:nd(an),h:`Cari dulu nilai 1 bagian: ${g} ÷ ${f?q:p}.`,e:`1 bagian = ${k}. Jawaban = ${f?p:q} × ${k} = ${an}.`}},
+()=>{const N=pick(NS),c=rnd(2,12),km=c*N/1e5,[A,B]=pick(PL);return{sub:'Skala: jarak pada peta',n:c,q:`Jarak sebenarnya ${A} ke ${B} adalah ${fmt(km)} km. Pada peta berskala 1 : ${fmt(N)}, jaraknya (cm) adalah ...`,a:fmt(c),d:nd(c),h:'Ubah km ke cm lebih dulu, lalu bagi dengan penyebut skala.',e:`${fmt(km)} km = ${fmt(km*1e5)} cm. ${fmt(km*1e5)} ÷ ${fmt(N)} = ${c} cm.`}},
+()=>{const t=rnd(2,6),v=rnd(4,14)*5;return rnd(0,1)?{sub:'Laju: kecepatan',n:v,q:`Sebuah bus antarkota di Jawa Tengah menempuh ${v*t} km dalam ${t} jam. Kecepatannya (km/jam) adalah ...`,a:fmt(v),d:nd(v),h:'Kecepatan = jarak ÷ waktu.',e:`${v*t} ÷ ${t} = ${v} km/jam.`}:{sub:'Laju: jarak',n:v*t,q:`${pick(NM)} berkendara ${v} km/jam selama ${t} jam. Jarak yang ditempuh (km) adalah ...`,a:fmt(v*t),d:nd(v*t),h:'Jarak = kecepatan × waktu.',e:`${v} × ${t} = ${v*t} km.`}}];
+const R2=[
+()=>{const[p,q]=cop(),k=rnd(2,8),[x,y,u,ds]=pick(FD),T=(p+q)*k,f=rnd(0,1),an=(f?q:p)*k;return{sub:'Rasio: bagian terhadap keseluruhan',n:an,q:`Untuk membuat ${ds}, ${pick(NM)} menyiapkan ${T} ${u} campuran ${x} dan ${y} dengan perbandingan ${p} : ${q}. Banyak ${f?y:x} (${u}) adalah ...`,a:fmt(an),d:nd(an),h:`Jumlah bagian = ${p} + ${q}. Bagi total dengan jumlah bagian.`,e:`1 bagian = ${T} ÷ ${p+q} = ${k}. Jawaban = ${f?q:p} × ${k} = ${an}.`}},
+()=>{const[p,q]=cop(),k=rnd(2,8),[x,y,m]=pick(EK),T=(p+q)*k,f=rnd(0,1),an=(f?q:p)*k;return{sub:'Rasio: bagian terhadap keseluruhan',n:an,q:`Anggota ${m} berjumlah ${T} orang dengan perbandingan ${x} dan ${y} adalah ${p} : ${q}. Banyak ${f?y:x} adalah ...`,a:fmt(an),d:nd(an),h:`Jumlah bagian = ${p} + ${q}. Bagi total dengan jumlah bagian.`,e:`1 bagian = ${T} ÷ ${p+q} = ${k}. Jawaban = ${f?q:p} × ${k} = ${an}.`}},
+()=>{const N=pick(NS),c=rnd(2,8),km=c*N/1e5,[A,B]=pick(PL),a=`1 : ${fmt(N)}`;return{sub:'Skala: menentukan skala',q:`Jarak ${A}–${B} pada peta ${c} cm, sedangkan jarak sebenarnya ${fmt(km)} km. Skala peta tersebut adalah ...`,a,d:[`1 : ${fmt(N*10)}`,`1 : ${fmt(N/10)}`,`1 : ${fmt(N*2)}`],h:'Skala = jarak peta : jarak sebenarnya, dengan satuan yang sama (cm).',e:`${fmt(km)} km = ${fmt(km*1e5)} cm. ${c} : ${fmt(km*1e5)} = ${a}.`}},
+()=>{const u1=rnd(5,15)*100,n1=rnd(2,6);let n2=rnd(2,6),u2=u1+pick([-200,-100,100,200]);if(n2==n1)n2++;const A=n1*u1,B=n2*u2,an=u1<u2?'Pedagang A lebih murah':'Pedagang B lebih murah',[x,s]=pick(LI);return{sub:'Laju: membandingkan dua harga',q:`Pedagang A menjual ${n1} ${s} ${x} seharga Rp${fmt(A)}. Pedagang B menjual ${n2} ${s} ${x} seharga Rp${fmt(B)}. Mana yang lebih murah per ${s}?`,a:an,d:[an=='Pedagang A lebih murah'?'Pedagang B lebih murah':'Pedagang A lebih murah','Harganya sama saja','Tidak bisa dibandingkan'],h:'Bandingkan harga per satuan, bukan harga totalnya.',e:`A: Rp${fmt(u1)} per ${s}; B: Rp${fmt(u2)} per ${s}. ${an}.`}}];
+const R3=[
+()=>{let[p,q]=cop();if(p>q)[p,q]=[q,p];const k=rnd(2,9),[x,y,m]=pick(EK),d=(q-p)*k,an=(p+q)*k;return{sub:'HOTS: selisih dan total',n:an,q:`Perbandingan ${x} dan ${y} dalam ${m} adalah ${p} : ${q}. Selisih keduanya ${d} orang. Berapa jumlah seluruh anggota?`,a:fmt(an),d:nd(an),h:`Selisih = ${q-p} bagian. Cari nilai 1 bagian lebih dulu.`,e:`1 bagian = ${d} ÷ ${q-p} = ${k}. Total = ${p+q} × ${k} = ${an}.`}},
+()=>{let N,c,km,v,t2,k=0;do{N=pick(NS);c=rnd(2,12);km=c*N/1e5;v=pick([20,30,40,50,60]);t2=km*2/v;k++}while((Math.abs(t2-Math.round(t2))>1e-9||t2/2>5)&&k<500);const mn=Math.round(t2*30),[A,B]=pick(PL);return{sub:'HOTS: skala dan kecepatan',n:mn,q:`Jarak ${A}–${B} pada peta ${c} cm (skala 1 : ${fmt(N)}). ${pick(NM)} naik motor dengan kecepatan ${v} km/jam. Berapa menit waktu tempuhnya?`,a:fmt(mn),d:nd(mn),h:'Cari jarak sebenarnya (km) dulu, lalu waktu = jarak ÷ kecepatan.',e:`Jarak = ${fmt(km)} km. Waktu = ${fmt(km)} ÷ ${v} = ${fmt(km/v)} jam = ${fmt(mn)} menit.`}},
+()=>{const s=pick([4,5,6,8]),a=rnd(2,9),k=rnd(2,6),[x,,u,ds]=pick(FD),an=a*k;return{sub:'HOTS: perbandingan senilai pada resep',n:an,q:`Resep ${ds} untuk ${s} porsi membutuhkan ${a} ${u} ${x}. ${pick(NM)} menerima pesanan ${s*k} porsi. ${x[0].toUpperCase()+x.slice(1)} yang dibutuhkan (${u}) adalah ...`,a:fmt(an),d:nd(an),h:'Cari dulu berapa kali lipat porsi pesanan dibanding resep.',e:`${s*k} ÷ ${s} = ${k} kali lipat. ${a} × ${k} = ${an} ${u}.`}},
+()=>{if(rnd(0,1)){const r=rnd(4,20),t=rnd(2,6),m=rnd(8,30);return{sub:'HOTS: debit',n:m,q:`Keran tandon air di sebuah SMP mengalirkan ${r*t} liter dalam ${t} menit. Berapa menit untuk mengisi bak berisi ${r*m} liter?`,a:fmt(m),d:nd(m),h:'Cari debit (liter per menit) lebih dulu.',e:`Debit = ${r} L/menit. ${r*m} ÷ ${r} = ${m} menit.`}}const u=rnd(1,6)*500,m=pick([3,5,7,9,15]);return{sub:'HOTS: konversi satuan',n:m*u,q:`Satu lusin lumpia Semarang harganya Rp${fmt(12*u)}. Berapa rupiah harga ${m} lumpia?`,a:fmt(m*u),d:nd(m*u),h:'1 lusin = 12 buah. Cari harga 1 lumpia.',e:`Harga 1 lumpia = ${fmt(12*u)} ÷ 12 = ${fmt(u)}. ${m} lumpia = ${fmt(m*u)}.`}}];
+/* ----- Bab 4 (Pengayaan): Himpunan bilangan real & Diagram Venn ----- */
+const svgReal=()=>`<svg viewBox="0 0 320 150" style="width:100%;max-width:340px;color:var(--t)"><rect x="2" y="2" width="316" height="146" rx="10" fill="none" stroke="currentColor"/><text x="10" y="15" font-size="11" fill="currentColor">Real</text><rect x="12" y="22" width="190" height="120" rx="14" fill="#6c4cf522" stroke="#6c4cf5"/><text x="20" y="36" font-size="10" fill="currentColor">Rasional</text><rect x="40" y="44" width="150" height="92" rx="12" fill="#22c55e22" stroke="#16a34a"/><text x="48" y="58" font-size="10" fill="currentColor">Bulat</text><rect x="68" y="66" width="112" height="64" rx="10" fill="#f59e0b22" stroke="#f59e0b"/><text x="76" y="80" font-size="10" fill="currentColor">Cacah</text><rect x="98" y="88" width="72" height="36" rx="8" fill="#e11d4822" stroke="#e11d48"/><text x="108" y="110" font-size="10" fill="currentColor">Asli</text><ellipse cx="262" cy="82" rx="48" ry="52" fill="#3b82f622" stroke="#3b82f6"/><text x="236" y="86" font-size="10" fill="currentColor">Irasional</text></svg>`;
+const svgV2=(N,a,b,c,A,B)=>`<svg viewBox="0 0 320 150" style="width:100%;max-width:340px;color:var(--t)"><rect x="2" y="2" width="316" height="146" rx="10" fill="none" stroke="currentColor"/><text x="10" y="15" font-size="11" fill="currentColor">Seluruh siswa: ${N}</text><circle cx="125" cy="80" r="50" fill="#e11d4822" stroke="#e11d48"/><circle cx="195" cy="80" r="50" fill="#3b82f622" stroke="#3b82f6"/><text x="80" y="84" font-size="11" fill="currentColor">${A}</text><text x="205" y="84" font-size="11" fill="currentColor">${B}</text><text x="153" y="84" font-size="12" font-weight="700" fill="currentColor">${c}</text><text x="10" y="143" font-size="10" fill="currentColor">${A} = ${a} · ${B} = ${b} · keduanya = ${c}</text></svg>`;
+const SQ=[4,9,16,25,36,49,64,81,100],SI=[2,3,5,6,7,8,10,11,12,13,14,15],DC=['0,5','0,25','1,75','2,4','0,125','3,6','0,8','1,5'];
+function num(t){const T={A:()=>{const n=rnd(1,40);return[''+n,'ACZQ']},O:()=>['0','CZQ'],N:()=>{const n=rnd(1,15);return['−'+n,'ZQ']},F:()=>{let a,b;do{b=rnd(2,9);a=rnd(1,9)}while(a%b==0);return[a+'/'+b,'Q']},D:()=>[pick(DC),'Q'],P:()=>{const s=pick(SQ);return['√'+s,'ACZQ']},I:()=>['√'+pick(SI),'X'],V:()=>['π','X']};return T[t]()}
+const SN=['Bilangan asli','Bilangan cacah','Bilangan bulat','Bilangan rasional','Bilangan irasional'];
+const H0=()=>{let it,k=0;do{const ir=num(pick(['I','V','I'])),rs=['P','F','D','N','A'].sort(()=>Math.random()-.5).slice(0,3).map(num);it=[ir,...rs];k++}while(new Set(it.map(x=>x[0])).size<4&&k<50);const an=it[0][0],o=it.slice(1).map(x=>x[0]);return{sub:'Mengenali bilangan irasional',v:svgReal(),q:`${pick(NM)}, guru matematika di Magelang, menggambar diagram Venn bilangan real di papan tulis. Lingkaran “irasional” terpisah dari lingkaran “rasional”. Bilangan manakah yang harus ditulis di lingkaran irasional?`,a:an,d:o,h:'Bilangan irasional tidak dapat ditulis sebagai pecahan a/b; desimalnya tidak berakhir dan tidak berulang.',e:`${an} tidak dapat ditulis sebagai pecahan a/b, sedangkan bilangan lainnya rasional (akar bilangan kuadrat sempurna adalah bilangan bulat).`}};
+const H1=()=>{const n=rnd(12,45),s=rnd(1,6),a=rnd(1,9),b=rnd(2,9),CX=[
+['Banyak anggota Pramuka di sebuah SMP di Salatiga adalah '+n+' siswa.',0],
+['Pada hari Senin, banyak siswa kelas 7A yang terlambat upacara adalah 0 siswa.',1],
+['Suhu pagi di Dataran Tinggi Dieng tercatat −'+s+' °C.',2],
+['Panjang kain batik Pekalongan yang dijual Mbak Ayu adalah '+(a%b?a+'/'+b:a+'/'+(b+1))+' meter.',3],
+['Tinggi badan Dimas adalah '+pick(['152,5','148,2','160,4'])+' cm.',3],
+['Keliling roda delman yang bergaris tengah 1 meter adalah π meter.',4],
+['Panjang diagonal sebuah ubin persegi bersisi 1 meter adalah √'+pick([2,3,5])+' meter.',4]],x=pick(CX),an=SN[x[1]];
+return{sub:'Himpunan bilangan terkecil',v:svgReal(),q:`${x[0]} Pada diagram Venn bilangan real, himpunan bilangan terkecil yang memuat bilangan tersebut adalah ...`,a:an,d:sh(SN.filter(z=>z!==an)).slice(0,3),h:'Urutan dari dalam ke luar: asli ⊂ cacah ⊂ bulat ⊂ rasional. Irasional berada terpisah dari rasional.',e:`Himpunan terkecil yang memuat bilangan itu adalah ${an.toLowerCase()}.`}};
+const H2=()=>{const N=rnd(30,45),c=rnd(3,8),a=c+rnd(4,12),b=c+rnd(4,12),u=a+b-c,ct=pick([['PMR','Pramuka'],['Pramuka','Paskibra'],['PMR','Seni Tari']]),w=rnd(0,3),A=ct[0],B=ct[1];if(u>=N)return H2();
+const V=[[N-u,`tidak mengikuti kedua ekstrakurikuler`],[a-c,`hanya mengikuti ${A}`],[(a-c)+(b-c),`mengikuti tepat satu ekstrakurikuler`],[u,`mengikuti paling sedikit satu ekstrakurikuler`]][w];
+return{sub:'Diagram Venn: irisan dan gabungan',n:V[0],v:svgV2(N,a,b,c,A,B),q:`Dari ${N} siswa kelas 7 di sebuah SMP di Kendal, ${a} siswa mengikuti ${A}, ${b} siswa mengikuti ${B}, dan ${c} siswa mengikuti keduanya. Banyak siswa yang ${V[1]} adalah ...`,a:fmt(V[0]),d:ndc(V[0]),h:'Gunakan n(A ∪ B) = n(A) + n(B) − n(A ∩ B) dan lihat daerah pada diagram Venn.',e:`n(A ∪ B) = ${a} + ${b} − ${c} = ${u}. Hanya ${A} = ${a-c}, hanya ${B} = ${b-c}, di luar = ${N-u}. Jawaban: ${V[0]}.`}};
+const H3=()=>{if(rnd(0,1)){const N=rnd(32,48),c=rnd(3,9),a=c+rnd(5,12),b=c+rnd(5,12),u=a+b-c,z=N-u;if(z<1)return H3();return{sub:'HOTS: Diagram Venn (mencari irisan)',n:c,q:`Dari ${N} siswa di sebuah SMP di Boyolali, ${a} siswa mengikuti PMR dan ${b} siswa mengikuti Pramuka. Ternyata ${z} siswa tidak mengikuti keduanya. Banyak siswa yang mengikuti kedua ekstrakurikuler adalah ...`,a:fmt(c),d:ndc(c),h:'Cari dulu banyak siswa yang ikut paling sedikit satu ekstrakurikuler: N − (yang tidak ikut).',e:`n(A ∪ B) = ${N} − ${z} = ${u}. ${u} = ${a} + ${b} − n(A ∩ B), sehingga n(A ∩ B) = ${c}.`}}
+const CS=[['bilangan irasional',x=>x[1]=='X'],['bilangan bulat',x=>x[1].includes('Z')],['bilangan rasional tetapi bukan bilangan bulat',x=>x[1]=='Q'],['bilangan cacah',x=>x[1].includes('C')]];
+let it,cs,cnt,k=0;do{it=sh(['A','O','N','F','D','P','I','V','A','I','F','N']).slice(0,8).map(t=>num(t));cs=pick(CS);cnt=it.filter(cs[1]).length;k++}while((cnt<1||new Set(it.map(x=>x[0])).size<8)&&k<300);
+return{sub:'HOTS: klasifikasi himpunan bilangan real',n:cnt,v:svgReal(),q:`Perhatikan himpunan S = { ${it.map(x=>x[0]).join(', ')} }. Dengan bantuan diagram Venn bilangan real, banyak anggota S yang merupakan ${cs[0]} adalah ...`,a:fmt(cnt),d:ndc(cnt),h:'Periksa satu per satu: akar bilangan kuadrat sempurna (mis. √49 = 7) adalah bilangan bulat.',e:`Anggota S yang ${cs[0]}: ${it.filter(cs[1]).map(x=>x[0]).join(', ')} (${cnt} bilangan).`}};
+const GEN={Rasio:[lvg(R0),lvg(R1),lvg(R2),lvg(R3)],Himpunan:[H0,H1,H2,H3]};
 /* ===== DATA ===== */
 let DB;try{DB=JSON.parse(localStorage.getItem(K))}catch(e){}
 DB=DB||{players:{},qh:[],cfg:{hint:1,timer:1,lb:1}};DB.cfg=DB.cfg||{hint:1,timer:1,lb:1};
@@ -74,7 +106,7 @@ const bar=v=>`<div class="bar"><i style="width:${v||0}%"></i></div>`;
 const stat=p=>p.n<5?'⚪ Baru':acc(p)>=80?'🟢 Menguasai':acc(p)>=60?'🟡 Berkembang':'🔴 Perlu bimbingan';
 function beep(f,d){try{const a=window._ac=window._ac||new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
 /* ===== GENERATOR ===== */
-function topic(){const w=TOP.map(t=>{const m=P.m[t];return 1+(1-(m[1]?m[0]/m[1]:.5))*2});let r=Math.random()*w.reduce((x,y)=>x+y);for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return TOP[i]}return TOP[TOP.length-1]}
+function topic(){return G.n<25?'Rasio':'Himpunan'}
 function make(tp,diff){let q;for(let t=0;t<60;t++){const i=diff==4?3:rnd(Math.max(0,diff-2),Math.min(diff-1,3));q=GEN[tp][i]();if(!G.seen.includes(q.q)&&(t>40||!SEEN.has(q.q)))break}q.topic=tp;q.diff=diff;G.seen.push(q.q);SEEN.add(q.q);return q}
 /* ===== VIEWS ===== */
 function render(){$('#app').innerHTML={login,game,res,dash,prof}[view]()}
@@ -88,18 +120,25 @@ const id=`${cls}-${no}-${name.toLowerCase().replace(/\W+/g,'')}`;P=DB.players[id
 function demo(){P=np('demo','Demo','7X',0);P.demo=1;ng();view='game';render()}
 function ng(){G={sid:newSid(),steps:0,sn:0,ld:0,det:[],pos:1,score:0,xp:0,st:0,ms:0,n:0,ok:0,bad:0,diff:1,cc:0,cw:0,seen:[],t0:Date.now(),sp:0,lim:QN,tp:mk()}}
 function tch(){if($('#pin').value===PIN){view='dash';render()}else $('#pin').style.borderColor='red'}
-function board(){let h='';for(let r=6;r>=0;r--){const row=[];for(let c=1;c<=8;c++)row.push(r*8+c);if(r%2)row.reverse();row.forEach(i=>{const t=type(i),ic={ladder:'🪜',snake:'🐍',bonus:'⭐',speed:'⚡',chal:'🧠',master:'👑',lucky:'🎲',normal:''}[t];h+=`<div class="cl ${t}"><b>${i}</b><span>${i==END?'🏁':ic+(L[i]?'→'+L[i]:S[i]?'→'+S[i]:'')}</span>${G.pos==i?'<em class="pw">🚀</em>':''}</div>`})}return h}
+function board(){let h='';for(let r=9;r>=0;r--){const row=[];for(let c=1;c<=10;c++)row.push(r*10+c);if(r%2)row.reverse();row.forEach(i=>{const t=type(i),ic={ladder:'🪜',snake:'🐍',bonus:'⭐',speed:'⚡',chal:'🧠',master:'👑',normal:''}[t];h+=`<div class="cl ${t}"><b>${i}</b><span>${i==END?'🏁':ic+(L[i]?'→'+L[i]:S[i]?'→'+S[i]:'')}</span>${G.pos==i?'<em class="pw">🚀</em>':''}</div>`})}return h}
 function game(){const l=lv(P);return`<div class="card"><div class="row"><div><b>${esc(P.name)}</b> <span class="tag">${P.cls}</span><div class="sub">Lv ${l} — ${LN[l-1]}</div></div><div style="text-align:right">🏆 <b>${G.score}</b>/100 poin · Soal <b>${G.n}/${G.lim}</b> · 🔥 ${G.st}<div class="sub">XP ${P.xp%300}/300 · Tingkat ${G.diff}/4</div></div></div>${bar(P.xp%300/3)}</div>
 <div class="card"><div id="bd">${board()}</div></div>
 <div class="card row"><div id="dice">🎲 ?</div><button class="btn" onclick="roll()">🎲 ROLL DICE</button><button class="btn o" onclick="view='login';render()">Keluar</button></div>
-<div class="sub" style="text-align:center">🪜 tangga · 🐍 ular · ⭐ bonus · 🧠 challenge · ⚡ speed · 👑 master · 🎲 lucky</div>`}
-async function roll(){if(busy)return;busy=1;G.steps=(G.steps||0)+1;const dv=$('#dice');for(let i=0;i<8;i++){dv.textContent='🎲 '+rnd(1,6);await sl(70)}const d=rnd(1,6);dv.textContent='🎲 '+d;
-let dir=1;for(let i=0;i<d;i++){if(G.pos>=END)dir=-1;G.pos+=dir;$('#bd').innerHTML=board();beep(300+G.pos*8,.05);await sl(220)}
-const t=type(G.pos);if(t=='lucky'){G.xp+=10;P.xp+=10;beep(700,.2);await info('🎲 Lucky Number!','Kamu mendapat +10 XP gratis! (skor tidak berubah)')}
-else{const ok=await ask(t);if(t=='ladder'&&ok){G.ld=(G.ld||0)+1;G.pos=L[G.pos];beep(900,.3);await info('🪜 AMAZING!','Strategi hebat! Kamu pantas naik!')}
+<div class="sub" style="text-align:center">🪜 tangga · 🐍 ular · ⭐ bonus · 🧠 challenge · ⚡ speed · 👑 master</div>`}
+async function roll(){if(busy)return;busy=1;G.steps=(G.steps||0)+1;
+if(G.n===0&&!G.b1){G.b1=1;await info('📘 Babak 1: Rasio (Bab 3)','Jawab 25 soal Rasio, Skala, dan Laju dengan konteks Jawa Tengah. Selamat bermain!')}
+if(G.n===25&&!G.b2){G.b2=1;await info('📗 Babak 2: Himpunan (Pengayaan)','Sekarang 25 soal tentang himpunan bilangan real dan Diagram Venn. Semangat!')}
+const dv=$('#dice'),rem=END-G.pos,left=G.lim-G.n,mx=Math.max(1,Math.min(6,Math.round(2*rem/left-1)));
+/* pacing: dadu disesuaikan agar 50 soal tepat habis saat pion mendekati petak 100 */
+const d=left==1?Math.min(6,rem):Math.min(rnd(1,mx),Math.max(rem-1,0));
+for(let i=0;i<8;i++){dv.textContent='🎲 '+rnd(1,6);await sl(70)}dv.textContent='🎲 '+d;
+for(let i=0;i<d;i++){G.pos++;$('#bd').innerHTML=board();beep(300+G.pos*3,.05);await sl(170)}
+const t=type(G.pos),ok=await ask(t);
+if(G.n>=G.lim){G.pos=END;$('#bd').innerHTML=board();beep(900,.3);await info('🏁 Garis Finish!','Kamu menuntaskan 50 soal dan sampai di petak 100!');busy=0;return fin()}
+if(t=='ladder'&&ok){G.ld=(G.ld||0)+1;G.pos=L[G.pos];beep(900,.3);await info('🪜 AMAZING!','Strategi hebat! Kamu pantas naik!')}
 else if(t=='ladder')await info('🪜 Tangga','Belum naik kali ini. Coba lagi di lemparan berikutnya!');
-else if(t=='snake'){G.sn=(G.sn||0)+1;const f=S[G.pos];G.pos=ok?Math.ceil((G.pos+f)/2):f;await info('🐍 Ular!',ok?'Jawabanmu tepat — kamu hanya turun setengah jalan!':'Kamu turun ke kotak '+f+'. Semangat, kamu pasti bisa naik lagi!')}}
-busy=0;persist();if(G.n>=G.lim)return fin();render()}
+else if(t=='snake'){G.sn=(G.sn||0)+1;const f=S[G.pos];G.pos=ok?Math.ceil((G.pos+f)/2):f;await info('🐍 Ular!',ok?'Jawabanmu tepat — kamu hanya turun setengah jalan!':'Kamu turun ke kotak '+f+'. Semangat, kamu pasti bisa naik lagi!')}
+busy=0;persist();render()}
 function info(h,p){return new Promise(r=>{const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="md" style="text-align:center"><h2>${h}</h2><p>${p}</p><button class="btn">Lanjut</button></div>`;o.querySelector('button').onclick=()=>{o.remove();r()};document.body.appendChild(o)})}
 /* ===== SOAL ===== */
 function ask(kind){return new Promise(res=>{const df={master:4,chal:Math.max(3,G.diff),speed:Math.min(G.diff,2),snake:Math.max(1,G.diff-1)}[kind]||G.diff,q=make(topic(),df);
@@ -109,7 +148,7 @@ Qs={q,kind,ty,claim,hints:0,t0:Date.now(),res,done:0};
 const o=document.createElement('div');o.className='ov';o.id='md';document.body.appendChild(o);
 const lab={normal:'Soal Biasa',chal:'🧠 Challenge',master:'👑 MASTER CHALLENGE',bonus:'⭐ Bonus',speed:'⚡ SPEED CHALLENGE',ladder:'🪜 Soal Tangga',snake:'🐍 Remedial Ular'}[kind];
 const body=ty=='tf'?`${q.q}<p><b>Pernyataan:</b> jawabannya adalah “${esc(claim)}”.</p>`:q.q;
-o.innerHTML=`<div class="md"><div class="row"><span class="tag">${lab}</span><span class="tag">${q.topic} · ${q.sub}</span><span id="tm" class="tag" style="flex:0"></span></div><h3 style="margin:10px 0">${body}</h3><div id="ch">${ty=='num'?'<input id="nv" inputmode="decimal" placeholder="Ketik jawaban angka"><button class="btn" onclick="ans($(\'#nv\').value)">Jawab</button>':opts.map((x,i)=>`<button class="op" data-i="${i}">${String.fromCharCode(65+i)}. ${esc(x)}</button>`).join('')}</div>
+o.innerHTML=`<div class="md"><div class="row"><span class="tag">${lab}</span><span class="tag">${q.topic} · ${q.sub}</span><span id="tm" class="tag" style="flex:0"></span></div><h3 style="margin:10px 0">${body}</h3>${q.v?`<div style="text-align:center">${q.v}</div>`:''}<div id="ch">${ty=='num'?'<input id="nv" inputmode="decimal" placeholder="Ketik jawaban angka"><button class="btn" onclick="ans($(\'#nv\').value)">Jawab</button>':opts.map((x,i)=>`<button class="op" data-i="${i}">${String.fromCharCode(65+i)}. ${esc(x)}</button>`).join('')}</div>
 <div id="hn" class="sub"></div>${DB.cfg.hint?'<button class="btn o s" id="hb" onclick="hint()">💡 Hint</button>':''}<div id="fb"></div></div>`;
 o.querySelectorAll('.op').forEach(b=>b.onclick=()=>ans(opts[b.dataset.i]));
 if(kind=='speed'&&DB.cfg.timer){let s=20;const u=()=>$('#tm')&&($('#tm').textContent='⏱ '+s+'s');u();Qs.iv=setInterval(()=>{s--;u();if(s<=0)ans(null)},1000)}})}
@@ -119,7 +158,7 @@ if(v!==null){if(ty=='num')ok=Math.abs(parseFloat(String(v).replace(/−/g,'-').r
 const base={chal:150,master:250,snake:50}[kind]||100,sec=Math.round((Date.now()-Qs.t0)/1000);let pts=0,xp=0;
 G.n++;P.n++;(G.det=G.det||[]).push({no:G.n,topic:q.topic,sub:q.sub,diff:q.diff,kind,q:q.q+(ty=='tf'?' [Pernyataan: "'+Qs.claim+'"]':''),sa:v===null?'(waktu habis)':String(v),ca:ty=='tf'?(Qs.claim===q.a?'Benar':'Salah'):q.a,ok});const m=P.m[q.topic];m[1]++;G.tp[q.topic][1]++;P.time+=sec;
 if(ok){G.ok++;P.ok++;m[0]++;G.tp[q.topic][0]++;G.st++;G.cc++;G.cw=0;G.ms=Math.max(G.ms,G.st);P.ms=Math.max(P.ms,G.st);
-pts=4;xp=kind=='master'?50:kind=='chal'?35:Qs.hints?20:25;
+pts=2;xp=kind=='master'?50:kind=='chal'?35:Qs.hints?20:25;
 if(kind=='speed')P.spd++;if(G.cc>=3){G.diff=Math.min(4,G.diff+1);G.cc=0}beep(800,.15)}
 else{G.bad++;P.bad++;G.st=0;G.cc=0;G.cw++;if(G.cw>=2){G.diff=Math.max(1,G.diff-1);G.cw=0}P.wl.unshift({q:q.q,a:q.a,topic:q.topic,sub:q.sub,diff:q.diff,kind,ts:Date.now(),sec});P.wl=P.wl.slice(0,60);beep(220,.25)}
 G.score+=pts;G.xp+=xp;P.xp+=xp;
@@ -131,7 +170,7 @@ document.querySelectorAll('.op,#hb').forEach(b=>b.disabled=true);$('#nx').onclic
 /* ===== SELESAI ===== */
 function fin(){if(busy)return;const r=TOP.map(t=>[t,pc(G.tp[t])]).filter(x=>x[1]!==null).sort((a,b)=>b[1]-a[1]);G.res={best:r[0]?r[0][0]:'-',weak:r.length?r[r.length-1][0]:'-',acc:G.n?Math.round(G.ok/G.n*100):0};
 if(!P.demo){P.games.unshift({ts:Date.now(),score:G.score,n:G.n,ok:G.ok,acc:G.res.acc,sec:Math.round((Date.now()-G.t0)/1000)});P.last=G.score;P.best=Math.max(P.best,G.score);
-const add=k=>{if(!P.b.includes(k))P.b.push(k)};add('First Step');if(pc(P.m.Rasio)>=90&&P.m.Rasio[1]>=5)add('Ratio Master');if(P.m.Skala[1]>=10)add('Scale Explorer');if(G.ok>=23)add('Math Hero');if(P.spd>=5)add('Speed Demon');if(P.ms>=10)add('Perfect Streak');if(G.bad>=5)add('Never Give Up');P.cur=null;DB.players[P.id]=P;save()}
+const add=k=>{if(!P.b.includes(k))P.b.push(k)};add('First Step');if(pc(P.m.Rasio)>=90&&P.m.Rasio[1]>=5)add('Ratio Master');if(P.m.Himpunan[1]>=10&&pc(P.m.Himpunan)>=80)add('Venn Master');if(G.ok>=46)add('Math Hero');if(P.spd>=5)add('Speed Demon');if(P.ms>=10)add('Perfect Streak');if(G.bad>=5)add('Never Give Up');P.cur=null;DB.players[P.id]=P;save()}
 view='res';render();sendResult()}
 function res(){const r=G.res,l=lv(P),top=Object.values(DB.players).sort((a,b)=>b.best-a.best).slice(0,5);
 return`<div class="card" style="text-align:center"><h1>🏆 QUEST COMPLETE!</h1><h2>${esc(P.name)}</h2><p>Score <b>${G.score}</b> · XP ${G.xp} · Accuracy ${r.acc}%<br>Soal ${G.n} · Benar ${G.ok} · Salah ${G.bad}</p><p>Topik terbaik: <b>${r.best}</b> ⭐ · Perlu latihan: <b>${r.weak}</b></p><p>Level: <b>${LN[l-1]}</b></p>
@@ -139,7 +178,7 @@ return`<div class="card" style="text-align:center"><h1>🏆 QUEST COMPLETE!</h1>
 ${DB.cfg.lb&&!P.demo?`<h3>🏆 Class Leaderboard</h3>${top.map((p,i)=>`<div>${['🥇','🥈','🥉','⭐','⭐'][i]} ${esc(p.name)} — ${p.best}</div>`).join('')}`:''}
 <div id="dbst" style="margin-top:10px"></div><button class="btn" style="margin-top:12px" onclick="view='login';render()">Kembali</button></div>`}
 /* ===== MASTER ===== */
-const REC={Rasio:'konsep rasio: menyederhanakan dan mencari nilai bagian',Skala:'hubungan jarak pada peta dan jarak sebenarnya serta konversi satuan',['Laju Satuan']:'harga/jarak per satuan dan membandingkan dua laju'};
+const REC={Rasio:'konsep rasio, skala, dan laju (perbandingan senilai dan konversi satuan)',Himpunan:'klasifikasi himpunan bilangan real dan membaca Diagram Venn'};
 const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()};
 const expJ=()=>dl('ratioquest-data.json',JSON.stringify(DB),'application/json');
 function expC(){const h='Nama,Kelas,Absen,Game,Skor tertinggi,Skor terakhir,Soal,Benar,Salah,Akurasi,'+TOP.join(',')+',Level,Menit\n';dl('ratioquest.csv',h+Object.values(DB.players).map(p=>[`"${p.name}"`,p.cls,p.no,p.games.length,p.best,p.last,p.n,p.ok,p.bad,acc(p),...TOP.map(t=>pc(p.m[t])),LN[lv(p)-1],Math.round(p.time/60)].join(',')).join('\n'),'text/csv')}
